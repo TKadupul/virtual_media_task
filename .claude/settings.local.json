@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(nvidia-smi)",
+      "Bash(pip3 --version)",
+      "Bash(pip --version)",
+      "Bash(conda --version)",
+      "Bash(nvcc --version)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Read(//usr/lib/**)",
+      "Bash(python3.10 --version)",
+      "Bash(python3.11 --version)",
+      "Bash(python3.12 --version)",
+      "Bash(dnf list *)",
+      "Bash(apt-cache show *)",
+      "Skill(artifact-design)",
+      "Artifact"
+    ]
+  }
+}
