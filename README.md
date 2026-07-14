@@ -1,7 +1,5 @@
 # virtual_media_task
 
-Environment Configuration
-
 As a systems student, I have very limited background in artificial intelligence. So first of all, I asked one of my friend who is studying AI, and got his recommandation, chosing 'CogVideo' as this task's target paper. 
 
 Then attempted to configure the environment.
