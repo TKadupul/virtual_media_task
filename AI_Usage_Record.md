@@ -1,2 +1,3 @@
 - Used Claude to read the official CogVideo documentation.
 - Generated a hardware-specific environment configuration guide (configuration.pdf) with AI assistance.
+- Help me with reading the paper
