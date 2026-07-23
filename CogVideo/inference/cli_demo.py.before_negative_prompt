@@ -52,7 +52,6 @@ RESOLUTION_MAP = {
 def generate_video(
     prompt: str,
     model_path: str,
-    negative_prompt: Optional[str] = None,
     lora_path: str = None,
     lora_rank: int = 128,
     num_frames: int = 81,
@@ -159,7 +158,6 @@ def generate_video(
             height=height,
             width=width,
             prompt=prompt,
-            negative_prompt=negative_prompt,
             image=image,
             # The path of the image, the resolution of video will be the same as the image for CogVideoX1.5-5B-I2V, otherwise it will be 720 * 480
             num_videos_per_prompt=num_videos_per_prompt,  # Number of videos to generate per prompt
@@ -174,7 +172,6 @@ def generate_video(
             height=height,
             width=width,
             prompt=prompt,
-            negative_prompt=negative_prompt,
             num_videos_per_prompt=num_videos_per_prompt,
             num_inference_steps=num_inference_steps,
             num_frames=num_frames,
@@ -187,7 +184,6 @@ def generate_video(
             height=height,
             width=width,
             prompt=prompt,
-            negative_prompt=negative_prompt,
             video=video,  # The path of the video to be used as the background of the video
             num_videos_per_prompt=num_videos_per_prompt,
             num_inference_steps=num_inference_steps,
@@ -205,12 +201,6 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--prompt", type=str, required=True, help="The description of the video to be generated"
-    )
-    parser.add_argument(
-        "--negative_prompt",
-        type=str,
-        default=None,
-        help="Content that should be discouraged in the generated video",
     )
     parser.add_argument(
         "--image_or_video_path",
@@ -263,7 +253,6 @@ if __name__ == "__main__":
     dtype = torch.float16 if args.dtype == "float16" else torch.bfloat16
     generate_video(
         prompt=args.prompt,
-        negative_prompt=args.negative_prompt,
         model_path=args.model_path,
         lora_path=args.lora_path,
         lora_rank=args.lora_rank,

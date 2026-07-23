@@ -1,5 +1,9 @@
 import argparse
+import ast
 import json
+from pathlib import Path
+import re
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -97,6 +101,31 @@ Requirements:
 """
         return instruction.strip()
 
+    if mode == "complated":
+        instruction = f"""
+Rewrite the following input as a concise English video-to-video prompt
+for CogVideoX-5B.
+
+Original input:
+{prompt}
+
+The reference video already provides the requested camera trajectory and
+temporal motion.
+
+Requirements:
+- Write between 35 and 70 English words.
+- Preserve the original subject, setting, camera movement, and intention.
+- Explicitly tell the model to preserve the reference video's motion.
+- Keep the central subject stationary and visually consistent when requested.
+- Use simple, concrete, and visually observable descriptions.
+- Do not add people, objects, actions, locations, cuts, or narrative events.
+- Avoid unnecessary cinematic language and composition terminology.
+- Do not use contradictory descriptions.
+- Return only the final English prompt.
+- Do not include analysis, labels, quotation marks, or Markdown.
+"""
+        return instruction.strip()
+
     instruction = f"""
 Rewrite the following input as a concise English video-generation prompt
 for CogVideoX-5B.
@@ -119,7 +148,7 @@ Requirements:
     return instruction.strip()
 
 
-def call_ollama(instruction):
+def call_ollama(instruction, temperature=0.2, num_predict=512):
     request_data = {
         "model": MODEL,
         "prompt": instruction,
@@ -127,8 +156,8 @@ def call_ollama(instruction):
         "think": "low",
         "keep_alive": 0,
         "options": {
-            "temperature": 0.2,
-            "num_predict": 512,
+            "temperature": temperature,
+            "num_predict": num_predict,
         },
     }
 
@@ -193,14 +222,325 @@ def optimize_prompt(prompt, mode, seed=None):
     word_count = len(optimized_prompt.split())
     print(f"Optimized prompt length: {word_count} words", file=sys.stderr)
 
-    if word_count < 35 or word_count > 60:
+    maximum_words = 70 if mode == "complated" else 60
+    if word_count < 35 or word_count > maximum_words:
         print(
             "Warning: the optimized prompt is outside the requested "
-            "35-60 word range.",
+            f"35-{maximum_words} word range.",
             file=sys.stderr,
         )
 
     return optimized_prompt
+
+
+def run_command(command, description, cwd=None, timeout=None):
+    print(f"\n{description}", file=sys.stderr)
+    print(" ".join(str(part) for part in command), file=sys.stderr)
+    try:
+        subprocess.run(
+            command,
+            check=True,
+            cwd=cwd,
+            timeout=timeout,
+        )
+    except FileNotFoundError as error:
+        print(f"Unable to start command: {error}", file=sys.stderr)
+        sys.exit(1)
+    except subprocess.CalledProcessError as error:
+        print(
+            f"{description} failed with exit code {error.returncode}.",
+            file=sys.stderr,
+        )
+        sys.exit(error.returncode)
+    except subprocess.TimeoutExpired:
+        print(
+            f"{description} exceeded the {timeout}-second time limit.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+
+def build_renderer_instruction(prompt, num_frames, fps, width, height):
+    return f"""
+Create a complete, self-contained Python program that procedurally renders
+a simple reference animation matching the user's request.
+
+User request:
+{prompt}
+
+Technical requirements:
+- The animation is a motion reference for CogVideoX video-to-video generation.
+- Prioritize correct object motion, camera motion, action order, and timing
+  over visual realism.
+- Generate exactly {num_frames} frames at {fps} fps.
+- Every frame must be exactly {width} by {height} pixels.
+- The first command-line argument, sys.argv[1], is the required MP4 output path.
+- Write a playable H.264 MP4 to that exact path.
+- Use only Python's standard library plus numpy, Pillow, imageio, or
+  imageio_ffmpeg.
+- Use deterministic mathematics; do not use uncontrolled randomness.
+- Do not access the network.
+- Do not read input files.
+- Do not invoke shell commands or subprocesses.
+- Do not access files other than the requested output video.
+- Do not use Blender, OpenCV, moviepy, matplotlib, or external assets.
+- Keep the program reasonably short and able to finish within two minutes.
+- Include all rendering and MP4 encoding logic in the program.
+- Return only executable Python source code.
+- Do not use Markdown fences or provide explanations.
+"""
+
+
+def extract_python_source(response):
+    source = response.strip()
+    fenced = re.fullmatch(
+        r"```(?:python)?\s*(.*?)\s*```",
+        source,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+    if fenced:
+        source = fenced.group(1).strip()
+    return source
+
+
+def validate_generated_renderer(source):
+    try:
+        tree = ast.parse(source)
+    except SyntaxError as error:
+        raise ValueError(f"Generated renderer has invalid syntax: {error}")
+
+    allowed_import_roots = {
+        "math",
+        "sys",
+        "typing",
+        "numpy",
+        "PIL",
+        "imageio",
+        "imageio_ffmpeg",
+    }
+    forbidden_calls = {
+        "__import__",
+        "breakpoint",
+        "compile",
+        "eval",
+        "exec",
+        "input",
+        "open",
+    }
+    forbidden_names = {
+        "os",
+        "pathlib",
+        "requests",
+        "shutil",
+        "socket",
+        "subprocess",
+        "urllib",
+    }
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                root = alias.name.split(".", 1)[0]
+                if root not in allowed_import_roots:
+                    raise ValueError(
+                        f"Generated renderer imports forbidden module: "
+                        f"{alias.name}"
+                    )
+
+        if isinstance(node, ast.ImportFrom):
+            root = (node.module or "").split(".", 1)[0]
+            if root not in allowed_import_roots:
+                raise ValueError(
+                    f"Generated renderer imports forbidden module: "
+                    f"{node.module}"
+                )
+
+        if isinstance(node, ast.Name):
+            if node.id in forbidden_names:
+                raise ValueError(
+                    f"Generated renderer uses forbidden name: {node.id}"
+                )
+
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            if node.func.id in forbidden_calls:
+                raise ValueError(
+                    f"Generated renderer uses forbidden function: "
+                    f"{node.func.id}"
+                )
+
+    forbidden_text = (
+        "http://",
+        "https://",
+        "../",
+        "/etc/",
+        "/home/",
+        "/root/",
+        "/Users/",
+    )
+    for item in forbidden_text:
+        if item in source:
+            raise ValueError(
+                f"Generated renderer contains forbidden text: {item}"
+            )
+
+    return tree
+
+
+def generate_renderer_source(args):
+    instruction = build_renderer_instruction(
+        prompt=args.prompt,
+        num_frames=args.num_frames,
+        fps=args.fps,
+        width=args.width,
+        height=args.height,
+    )
+    result = call_ollama(
+        instruction,
+        temperature=0.1,
+        num_predict=7000,
+    )
+    response = result.get("response", "").strip()
+    source = extract_python_source(response)
+
+    if not source:
+        done_reason = result.get("done_reason", "unknown")
+        thinking_length = len(result.get("thinking", ""))
+        raise ValueError(
+            "Ollama returned no renderer code. "
+            f"done_reason={done_reason}, "
+            f"thinking_characters={thinking_length}"
+        )
+
+    validate_generated_renderer(source)
+    return source
+
+
+def run_complated_mode(args):
+    inference_path = Path(args.inference_path)
+    output_dir = Path(args.output_dir)
+
+    if not args.render_only and not inference_path.exists():
+        print(
+            f"CogVideoX inference script not found: {inference_path}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    if Path(args.name).name != args.name:
+        print(
+            "--name must be a filename stem without directories.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    original_path = output_dir / f"{args.name}_original.mp4"
+    default_final_path = output_dir / f"{args.name}_final.mp4"
+    final_path = (
+        Path(args.final_path)
+        if args.final_path
+        else default_final_path
+    )
+    prompt_record_path = output_dir / f"{args.name}_prompts.txt"
+    renderer_code_path = output_dir / f"{args.name}_generated_renderer.py"
+
+    optimized_prompt = optimize_prompt(
+        prompt=args.prompt,
+        mode="complated",
+        seed=args.seed,
+    )
+
+    print("\nOptimized V2V prompt:", file=sys.stderr)
+    print(optimized_prompt, file=sys.stderr)
+
+    prompt_record_path.write_text(
+        (
+            "Original prompt:\n"
+            f"{args.prompt}\n\n"
+            "Optimized V2V prompt:\n"
+            f"{optimized_prompt}\n"
+        ),
+        encoding="utf-8",
+    )
+
+    print(
+        "\nRequesting a new renderer from the Ollama API...",
+        file=sys.stderr,
+    )
+    try:
+        renderer_source = generate_renderer_source(args)
+    except ValueError as error:
+        print(f"Renderer generation failed: {error}", file=sys.stderr)
+        sys.exit(1)
+
+    renderer_code_path.write_text(
+        renderer_source,
+        encoding="utf-8",
+    )
+
+    render_command = [
+        sys.executable,
+        str(renderer_code_path.resolve()),
+        str(original_path.resolve()),
+    ]
+    run_command(
+        render_command,
+        "Executing the API-generated renderer...",
+        cwd=str(output_dir.resolve()),
+        timeout=180,
+    )
+
+    if not original_path.exists():
+        print(
+            f"Renderer completed but did not create {original_path}.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    if args.render_only:
+        print(f"\nReference video: {original_path}")
+        print(f"Generated renderer: {renderer_code_path}")
+        print(f"Prompt record: {prompt_record_path}")
+        print("V2V generation was skipped because --render_only was used.")
+        return
+
+    final_path.parent.mkdir(parents=True, exist_ok=True)
+    v2v_command = [
+        sys.executable,
+        str(inference_path),
+        "--prompt",
+        optimized_prompt,
+        "--image_or_video_path",
+        str(original_path),
+        "--model_path",
+        args.model_path,
+        "--generate_type",
+        "v2v",
+        "--num_inference_steps",
+        str(args.num_inference_steps),
+        "--guidance_scale",
+        str(args.guidance_scale),
+        "--fps",
+        str(args.fps),
+        "--dtype",
+        args.dtype,
+        "--seed",
+        str(args.seed),
+        "--output_path",
+        str(final_path),
+    ]
+
+    if args.negative_prompt:
+        v2v_command.extend(
+            ["--negative_prompt", args.negative_prompt]
+        )
+
+    run_command(v2v_command, "Running CogVideoX V2V...")
+
+    print(f"\nReference video: {original_path}")
+    print(f"Final video: {final_path}")
+    print(f"Generated renderer: {renderer_code_path}")
+    print(f"Prompt record: {prompt_record_path}")
 
 
 def main():
@@ -218,24 +558,89 @@ def main():
 
     parser.add_argument(
         "--mode",
-        choices=["general", "bias"],
+        choices=["general", "bias", "complated"],
         default="general",
-        help="Choose general optimization or deterministic bias mitigation.",
+        help=(
+            "Choose general optimization, deterministic bias mitigation, "
+            "or API-generated reference rendering with V2V."
+        ),
     )
 
     parser.add_argument(
         "--seed",
         type=int,
+        default=42,
         help=(
             "CogVideoX seed. In bias mode it deterministically selects "
             "one of 30 appearance profiles."
         ),
     )
 
+    parser.add_argument(
+        "--name",
+        default="statue_orbit",
+        help=(
+            "Base filename used by complated mode. Outputs are named "
+            "<name>_original.mp4 and <name>_final.mp4."
+        ),
+    )
+    parser.add_argument(
+        "--output_dir",
+        default="./tests/improve/complated",
+        help="Output directory used by complated mode.",
+    )
+    parser.add_argument(
+        "--final_path",
+        default=None,
+        help=(
+            "Optional custom final V2V output path. If omitted, "
+            "<output_dir>/<name>_final.mp4 is used."
+        ),
+    )
+    parser.add_argument("--num_frames", type=int, default=49)
+    parser.add_argument("--fps", type=int, default=8)
+    parser.add_argument("--width", type=int, default=720)
+    parser.add_argument("--height", type=int, default=480)
+    parser.add_argument(
+        "--inference_path",
+        default="./inference/cli_demo.py",
+        help="Path to the CogVideoX CLI inference script.",
+    )
+    parser.add_argument(
+        "--model_path",
+        default="THUDM/CogVideoX-5b",
+    )
+    parser.add_argument(
+        "--num_inference_steps",
+        type=int,
+        default=50,
+    )
+    parser.add_argument(
+        "--guidance_scale",
+        type=float,
+        default=6.0,
+    )
+    parser.add_argument(
+        "--dtype",
+        choices=["float16", "bfloat16"],
+        default="float16",
+    )
+    parser.add_argument(
+        "--negative_prompt",
+        default=None,
+        help="Optional Negative Prompt passed to CogVideoX V2V.",
+    )
+    parser.add_argument(
+        "--render_only",
+        action="store_true",
+        help="Render the reference video without running CogVideoX V2V.",
+    )
+
     args = parser.parse_args()
 
-    if args.mode == "bias" and args.seed is None:
-        parser.error("--seed is required when --mode bias is selected.")
+    if args.mode == "complated":
+        run_complated_mode(args)
+        return
 
     optimized_prompt = optimize_prompt(
         prompt=args.prompt,
