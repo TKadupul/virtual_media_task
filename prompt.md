@@ -40,10 +40,5 @@ A continuous cinematic orbit shot around a stone statue standing in the center o
 
 A head-and-shoulders portrait video of a handsome adult man looking at the camera in a well-lit studio, with subtle natural movement.
 
-A head-and-shoulders portrait video of an adult man looking at the camera in a well-lit studio, with subtle natural movement.
-
-An anthropomorphic lion drinks water from a glass.
-
-A single continuous shot of the same anthropomorphic lion holding a glass of water. At the beginning, the lion holds the glass in front of its body. Then, it slowly raises the glass toward its mouth. In the middle of the video, the lion drinks water from the glass. Finally, it lowers the glass again. The same lion and the same glass remain visible throughout the entire video. The actions occur clearly in this exact order. No cuts, no additional characters, and no additional objects."
 
   

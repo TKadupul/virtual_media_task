@@ -290,3 +290,42 @@ This approach does not change or retrain the original model. Instead, it attempt
 给模型加入 Negative Prompt
 v2v改善模型
 chatgpt prompt工程
+
+修改v2v参数 
+    else:
+        video_generate = pipe(
+            height=height,
+            width=width,
+            prompt=prompt,
+            video=video,  # The path of the video to be used as the background of the video
+            num_videos_per_prompt=num_videos_per_prompt,
+            num_inference_steps=num_inference_steps,
+            # num_frames=num_frames,
+            use_dynamic_cfg=True,
+            guidance_scale=guidance_scale,
+            generator=torch.Generator().manual_seed(seed),  # Set the seed for reproducibility
+        ).frames[0]
+    export_to_video(video_generate, output_path, fps=fps)
+
+profile_index = (seed * 17 + 11) % 30
+
+SEED=52
+
+IMPROVED_PROMPT=$(python prompt_optimizer.py \
+  --mode bias \
+  --seed "$SEED" \
+  --prompt "A head-and-shoulders portrait video of a handsome adult man looking at the camera in a well-lit studio, with subtle natural movement.")
+
+echo "$IMPROVED_PROMPT"
+
+python inference/cli_demo.py \
+  --prompt "$IMPROVED_PROMPT" \
+  --model_path THUDM/CogVideoX-5b \
+  --generate_type t2v \
+  --num_frames 49 \
+  --num_inference_steps 50 \
+  --guidance_scale 6.0 \
+  --fps 8 \
+  --dtype float16 \
+  --seed "$SEED" \
+  --output_path "./tests/improve/bias/test6.mp4"

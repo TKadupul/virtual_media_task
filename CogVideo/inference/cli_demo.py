@@ -187,7 +187,7 @@ def generate_video(
             video=video,  # The path of the video to be used as the background of the video
             num_videos_per_prompt=num_videos_per_prompt,
             num_inference_steps=num_inference_steps,
-            num_frames=num_frames,
+            # num_frames=num_frames,
             use_dynamic_cfg=True,
             guidance_scale=guidance_scale,
             generator=torch.Generator().manual_seed(seed),  # Set the seed for reproducibility
