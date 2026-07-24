@@ -1,0 +1,6 @@
+Output matches the deterministic re-run identically. The contact sheet clearly shows: blue sedan ahead → red sedan (POV) shifting lanes and passing it (frames 1-4) → empty road during the U-turn/opposite-direction driving (frames 5-9) → blue sedan reappearing ahead again through the windshield (frames 10-12). Motion, order, and identity are all consistent with the request.
+
+Validation succeeded. Required files present and verified (H.264/yuv420p, 720x480, 49 frames @ 8fps):
+- `test3_generated_renderer.py`
+- `test3_original.mp4`
+- `test3_check.jpg`

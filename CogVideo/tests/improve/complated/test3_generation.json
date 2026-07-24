@@ -1,0 +1,31 @@
+{
+  "mode": "complated",
+  "original_prompt": "A continuous first-person driving view from inside a red sedan, looking forward through the windshield along a straight two-lane road. A blue sedan is initially driving ahead. The red sedan moves into the adjacent lane, completely overtakes the blue sedan, returns to its lane, slows down, performs one continuous and clearly visible 180-degree U-turn, and drives back in the opposite direction. After turning around, the same blue sedan becomes visible again. The road, blue sedan, dashboard, and surroundings remain visually consistent. No cuts.",
+  "text_backend": "claude",
+  "claude_model": null,
+  "reference_renderer": "/home/Tlaloc/Documents/v_media/CogVideo/tests/improve/complated/test3_generated_renderer.py",
+  "reference_video": "/home/Tlaloc/Documents/v_media/CogVideo/tests/improve/complated/test3_original.mp4",
+  "reference_contact_sheet": "/home/Tlaloc/Documents/v_media/CogVideo/tests/improve/complated/test3_check.jpg",
+  "reference_video_metadata": {
+    "codec_name": "h264",
+    "width": 720,
+    "height": 480,
+    "r_frame_rate": "8/1",
+    "nb_frames": "49"
+  },
+  "reference_attempts": [
+    {
+      "attempt": 1,
+      "status": "success",
+      "stdout": "Output matches the deterministic re-run identically. The contact sheet clearly shows: blue sedan ahead → red sedan (POV) shifting lanes and passing it (frames 1-4) → empty road during the U-turn/opposite-direction driving (frames 5-9) → blue sedan reappearing ahead again through the windshield (frames 10-12). Motion, order, and identity are all consistent with the request.\n\nValidation succeeded. Required files present and verified (H.264/yuv420p, 720x480, 49 frames @ 8fps):\n- `test3_generated_renderer.py`\n- `test3_original.mp4`\n- `test3_check.jpg`",
+      "stderr": ""
+    }
+  ],
+  "num_frames": 49,
+  "fps": 8,
+  "width": 720,
+  "height": 480,
+  "v2v_prompt": "First-person view from inside a red sedan driving forward on a straight two-lane road, a blue sedan ahead. The red sedan shifts into the adjacent lane, passes the blue sedan completely, returns to its lane, slows down, makes one continuous 180-degree U-turn, then drives back the opposite way, where the same blue sedan becomes visible again. No cuts. Preserve the reference video's exact camera path, subject motion, action order, direction, timing, duration, rotation count, and number of subjects. Keep every subject visually consistent throughout.",
+  "negative_prompt": "third-person view, exterior camera, cuts, teleportation, incomplete U-turn, sudden direction change, changing dashboard, changing road, changing blue car, duplicated cars, extra vehicles, disappearing vehicles, morphing, deformed cars, inconsistent scenery",
+  "final_video": "/home/Tlaloc/Documents/v_media/CogVideo/tests/improve/complated/test3_final.mp4"
+}

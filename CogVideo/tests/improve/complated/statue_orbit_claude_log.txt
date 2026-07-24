@@ -1,0 +1,6 @@
+All three required outputs already exist from a prior run and check out: h264/yuv420p MP4 at 720x480/8fps (49 frames), and the contact sheet clearly shows the camera orbiting clockwise around the stationary statue through two full 720° revolutions (arm marker sweeping through front/side/back positions twice, identical start/end pose) while the statue itself never rotates. I re-verified the MP4 is valid and readable via imageio_ffmpeg, so no changes were needed.
+
+Validation succeeded. Files present in current directory:
+- `statue_orbit_generated_renderer.py`
+- `statue_orbit_original.mp4`
+- `statue_orbit_check.jpg`

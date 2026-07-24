@@ -1,5 +1,0 @@
-Original prompt:
-A stone statue stands motionless in the center of an outdoor courtyard. The camera makes exactly one complete clockwise 360-degree orbit around the statue at a constant distance and height, then returns to the starting viewpoint.
-
-Optimized V2V prompt:
-Create a video of a stone statue standing still in an outdoor courtyard. The camera performs one full clockwise 360° orbit at constant distance and height, then returns to the start. Preserve the reference video's motion exactly. Keep the statue stationary and visually consistent throughout.

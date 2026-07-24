@@ -1,0 +1,65 @@
+Work only in the current directory. Create and execute a deterministic,
+self-contained Python reference-animation renderer for the user request
+below.
+
+USER VIDEO REQUEST:
+A continuous first-person driving view from inside a red sedan, looking forward through the windshield along a straight two-lane road. A blue sedan is initially driving ahead. The red sedan moves into the adjacent lane, completely overtakes the blue sedan, returns to its lane, slows down, performs one continuous and clearly visible 180-degree U-turn, and drives back in the opposite direction. After turning around, the same blue sedan becomes visible again. The road, blue sedan, dashboard, and surroundings remain visually consistent. No cuts.
+
+REQUIRED OUTPUTS:
+- Renderer source: test2_generated_renderer.py
+- Reference MP4: test2_original.mp4
+- Visual contact sheet: test2_check.jpg
+
+VIDEO SETTINGS:
+- Frames: 49
+- FPS: 8
+- Resolution: 720x480
+
+PURPOSE:
+The MP4 will guide a later CogVideoX video-to-video pass. Exact subject
+motion, camera motion, action order, spatial relationships, timing, direction,
+and requested rotation count matter more than photorealism.
+
+RENDERER REQUIREMENTS:
+- Create a simple but clearly recognizable symbolic animation.
+- Use Python with argparse, math, pathlib, NumPy, Pillow, and imageio_ffmpeg.
+- Do not use Blender, Manim, OpenGL, external assets, downloads, or network
+  access.
+- Use explicit mathematical trajectories and chronological keyframes.
+- Make different sides of important subjects visually distinguishable.
+- For a camera orbit, move the virtual camera around a stationary subject;
+  do not rotate the subject to face the camera.
+- Complete exact requested rotation counts mathematically.
+- If the ending viewpoint should equal the beginning, make the first and last
+  camera states mathematically identical.
+- Keep object identity, size, color, and stationary objects consistent.
+- Avoid morphing, unexplained cuts, duplicates, or extra subjects.
+- Encode a real H.264 MP4 with yuv420p pixel format.
+- imageio_ffmpeg.write_frames returns a generator. Initialize it, call
+  writer.send(None), send contiguous uint8 RGB frames one by one, and close it
+  in a finally block.
+
+VALIDATION REQUIREMENTS:
+- Run it using exactly: python test2_generated_renderer.py
+- Confirm test2_original.mp4 exists, is non-empty, and is readable.
+- Build test2_check.jpg from several frames covering the entire motion.
+- Use the Read tool to inspect the contact sheet.
+- If the requested motion is not visually clear or the output is invalid,
+  modify the renderer and repeat the test.
+- Finish only after the three required files exist.
+
+Do not run CogVideoX. Do not edit files outside the current directory.
+In the final response, report only whether validation succeeded and list the
+three filenames.
+
+
+PREVIOUS ATTEMPT PROBLEM:
+Claude Code failed.
+exit_code=1
+stdout:
+Error: Reached max turns (12)
+stderr:
+
+
+Inspect the existing files, repair them, rerun the renderer, and verify the
+new result. Do not merely explain the error.

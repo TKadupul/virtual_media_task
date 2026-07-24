@@ -311,6 +311,7 @@ profile_index = (seed * 17 + 11) % 30
 
 SEED=52
 
+
 IMPROVED_PROMPT=$(python prompt_optimizer.py \
   --mode bias \
   --seed "$SEED" \
@@ -329,3 +330,43 @@ python inference/cli_demo.py \
   --dtype float16 \
   --seed "$SEED" \
   --output_path "./tests/improve/bias/test6.mp4"
+
+
+加入negative_prompt
+  def generate_video(
+    prompt: str,
+    model_path: str,
+    negative_prompt: Optional[str] = None,
+    ...
+):
+
+使用api实时渲染效果很不理想，所以仅使用api来辅助blender完成对应视频
+comfyui + wan2.2
+
+
+
+
+python prompt_optimizer.py \
+  --mode complated \
+  --reference_only \
+  --name statue_orbit \
+  --prompt "A camera circles clockwise around a stationary stone statue exactly two complete times." \
+  --num_frames 49 \
+  --fps 8 \
+  --width 720 \
+  --height 480
+
+  python prompt_optimizer.py \
+  --mode complated \
+  --name statue_orbit \
+  --prompt "A realistic stone statue stands motionless in the center of a normal outdoor courtyard. The camera circles clockwise around the statue exactly two complete times, completing a total rotation of 720 degrees. The camera maintains a constant distance and height and returns to its original viewpoint. The statue remains stationary, centered, fully visible, and visually consistent throughout." \
+  --num_frames 49 \
+  --fps 8 \
+  --width 720 \
+  --height 480 \
+  --model_path THUDM/CogVideoX-5b \
+  --num_inference_steps 50 \
+  --guidance_scale 6.0 \
+  --dtype float16 \
+  --seed 42 \
+  --negative_prompt "cuts, zoom, fisheye distortion, camera shake, moving statue, rotating statue, changing statue, morphing, duplicated statue, extra people, extra objects, inconsistent courtyard, deformed geometry"

@@ -1,0 +1,31 @@
+{
+  "mode": "complated",
+  "original_prompt": "A realistic stone statue stands motionless in the center of a normal outdoor courtyard. The camera circles clockwise around the statue exactly two complete times, completing a total rotation of 720 degrees. The camera maintains a constant distance and height and returns to its original viewpoint. The statue remains stationary, centered, fully visible, and visually consistent throughout.",
+  "text_backend": "claude",
+  "claude_model": null,
+  "reference_renderer": "/home/Tlaloc/Documents/v_media/CogVideo/tests/improve/complated/test1_generated_renderer.py",
+  "reference_video": "/home/Tlaloc/Documents/v_media/CogVideo/tests/improve/complated/test1_original.mp4",
+  "reference_contact_sheet": "/home/Tlaloc/Documents/v_media/CogVideo/tests/improve/complated/test1_check.jpg",
+  "reference_video_metadata": {
+    "codec_name": "h264",
+    "width": 720,
+    "height": 480,
+    "r_frame_rate": "8/1",
+    "nb_frames": "49"
+  },
+  "reference_attempts": [
+    {
+      "attempt": 1,
+      "status": "success",
+      "stdout": "H.264/yuv420p confirmed, 720x480 @ 8fps. All three required files are validated.\n\nValidation succeeded. Files created in the current directory:\n- `test1_generated_renderer.py`\n- `test1_original.mp4` (H.264/yuv420p, 720x480, 8 fps, 49 frames)\n- `test1_check.jpg`",
+      "stderr": ""
+    }
+  ],
+  "num_frames": 49,
+  "fps": 8,
+  "width": 720,
+  "height": 480,
+  "v2v_prompt": "A realistic stone statue stands motionless at the center of an outdoor courtyard. The camera moves in a smooth clockwise circle around the statue, completing two full 720-degree rotations at constant distance and height, returning to its starting position. The statue remains stationary, centered, fully visible, and visually consistent throughout the entire motion. Preserve the reference video's exact camera path, subject motion, action order, direction, timing, duration, rotation count, and number of subjects. Keep every subject visually consistent throughout.",
+  "negative_prompt": "cuts, zoom, fisheye distortion, camera shake, moving statue, rotating statue, changing statue, morphing, duplicated statue, extra people, extra objects, inconsistent courtyard, deformed geometry",
+  "final_video": "/home/Tlaloc/Documents/v_media/CogVideo/tests/improve/complated/test1_final.mp4"
+}

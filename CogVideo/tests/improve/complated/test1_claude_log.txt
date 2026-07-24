@@ -1,0 +1,6 @@
+H.264/yuv420p confirmed, 720x480 @ 8fps. All three required files are validated.
+
+Validation succeeded. Files created in the current directory:
+- `test1_generated_renderer.py`
+- `test1_original.mp4` (H.264/yuv420p, 720x480, 8 fps, 49 frames)
+- `test1_check.jpg`
